@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "./PriceConverter.sol";
 
+error NotOwner();
+
 contract FundMe {
     using PriceConverter for uint256;
 
@@ -11,8 +13,8 @@ contract FundMe {
     address[] public funders;
 
     // Could we make this constant?  /* hint: no! We should make it immutable! */
-    address public /* immutable */ i_owner;
-    uint256 public constant MINIMUM_USD = 50 * 10 ** 18;
+    address public immutable i_owner;
+    uint256 public constant MINIMUM_USD = 5 * 1e18;
     
     constructor(){
         i_owner = msg.sender;
@@ -46,6 +48,20 @@ contract FundMe {
 
     modifier onlyOwner{
         require(msg.sender == i_owner, "sender is not owner!");
+        if(msg.sender != i_owner){
+            revert NotOwner();
+        }
         _;
     }
+    // What Happens if someone send this contract ETH without calling the fund function
+    
+    //recieve
+    receive() external payable{
+        fund();
+    }
+    //fallback
+    fallback() external payable{
+        fund();
+    }
 }
+ 
